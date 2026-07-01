@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เข้าสู่ระบบ - ACC CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  body.login-body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--dark);
+    padding:20px;
+  }
+  .login-wrap{width:100%;max-width:380px;}
+  .login-card{
+    background:var(--white);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-lg);
+    padding:32px 30px;
+  }
+  .login-logo{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .login-logo .logo-icon{width:42px;height:42px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;flex-shrink:0;}
+  .login-logo h2{font-size:16px;font-weight:700;color:var(--dark);}
+  .login-logo p{font-size:11.5px;color:var(--gray);}
+  .login-title{font-size:19px;font-weight:700;color:var(--dark);margin-bottom:4px;}
+  .login-sub{font-size:13px;color:var(--gray);margin-bottom:22px;}
+  .login-field{margin-bottom:16px;}
+  .login-field label{display:block;font-size:12.5px;font-weight:700;color:var(--dark);margin-bottom:6px;}
+  .login-field input{
+    width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);
+    font-size:15px;font-family:'Sarabun',sans-serif;background:var(--light);color:var(--dark);
+    letter-spacing:.02em;transition:var(--transition);
+  }
+  .login-field input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);background:var(--white);}
+  .login-error{
+    display:none;align-items:center;gap:7px;font-size:12.5px;color:var(--danger);
+    background:var(--danger-light);padding:9px 12px;border-radius:var(--radius-sm);margin-bottom:14px;
+  }
+  .login-btn{
+    width:100%;padding:11px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);
+    font-size:14.5px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;transition:var(--transition);
+  }
+  .login-btn:hover{background:var(--primary-dark);}
+  .login-foot{margin-top:18px;text-align:center;font-size:11.5px;color:var(--gray);}
+  .login-remember{
+    display:flex;align-items:center;gap:8px;margin-bottom:18px;cursor:pointer;user-select:none;
+  }
+  .login-remember input[type="checkbox"]{
+    width:16px;height:16px;accent-color:var(--primary);cursor:pointer;flex-shrink:0;
+  }
+  .login-remember span{font-size:13px;color:var(--dark);}
+</style>
+</head>
+<body class="login-body">
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon"><i class="fas fa-calculator"></i></div>
+      <div>
+        <h2>ACC CRM</h2>
+        <p>ระบบบัญชีอัจฉริยะ</p>
+      </div>
+    </div>
+
+    <div class="login-title">เข้าสู่ระบบ</div>
+    <div class="login-sub">กรอกรหัสพนักงานเพื่อเข้าใช้งาน</div>
+
+    <div class="login-error" id="loginError">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="loginErrorText">ไม่พบรหัสพนักงานนี้ในระบบ</span>
+    </div>
+
+    <div class="login-field">
+      <label for="empCodeInput">รหัสพนักงาน</label>
+      <input type="text" id="empCodeInput" placeholder="เช่น D-001" autocomplete="off" autofocus>
+    </div>
+
+    <label class="login-remember">
+      <input type="checkbox" id="rememberCheckbox">
+      <span>จดจำรหัสพนักงานนี้ไว้</span>
+    </label>
+
+    <button class="login-btn" id="loginBtn" onclick="handleLogin()">
+      <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
+    </button>
+
+    <div class="login-foot">© ACC CRM &mdash; ระบบสำหรับพนักงานภายในเท่านั้น</div>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>
+  const REMEMBER_KEY = 'accCrmRememberedCode';
+
+  function handleLogin() {
+    const input = document.getElementById('empCodeInput');
+    const code = input.value.trim();
+    const errBox = document.getElementById('loginError');
+    const errText = document.getElementById('loginErrorText');
+    const remember = document.getElementById('rememberCheckbox').checked;
+
+    if (!code) {
+      errText.textContent = 'กรุณากรอกรหัสพนักงาน';
+      errBox.style.display = 'flex';
+      return;
+    }
+
+    const session = window.AccAuth.login(code);
+    if (!session) {
+      errText.textContent = 'ไม่พบรหัสพนักงาน "' + code + '" ในระบบ';
+      errBox.style.display = 'flex';
+      return;
+    }
+
+    if (remember) {
+      localStorage.setItem(REMEMBER_KEY, session.code);
+    } else {
+      localStorage.removeItem(REMEMBER_KEY);
+    }
+
+    errBox.style.display = 'none';
+    window.location.href = 'dashboard.html';
+  }
+
+  document.getElementById('empCodeInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleLogin();
+  });
+
+  // เติมรหัสพนักงานที่จดจำไว้ลงในช่องกรอกอัตโนมัติ
+  (function fillRememberedCode() {
+    const saved = localStorage.getItem(REMEMBER_KEY);
+    if (saved) {
+      const input = document.getElementById('empCodeInput');
+      input.value = saved;
+      document.getElementById('rememberCheckbox').checked = true;
+      input.select();
+    }
+  })();
+
+  // ถ้ามี session ที่ยังใช้ได้อยู่แล้ว ให้ข้ามไปหน้า dashboard ทันที
+  (function redirectIfLoggedIn() {
+    const session = window.AccAuth.getSession();
+    if (session && window.AccAuth.findEmployee(session.code)) {
+      window.location.href = 'dashboard.html';
+    }
+  })();
+</script>
+</body>
+</html>

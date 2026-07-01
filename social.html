@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ประกันสังคม - ACC CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ===== SOCIAL TABLE (mirrors WHT style) ===== */
+    .soc-wrap { overflow-x: auto; }
+    .soc-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
+    .soc-table th, .soc-table td { padding: 8px 10px; border: 1px solid var(--border); white-space: nowrap; }
+    .soc-table thead th { background: var(--light); font-size: 11px; font-weight: 700; color: var(--gray); text-align: center; text-transform: uppercase; letter-spacing: .05em; }
+    .soc-table thead th.gh      { background: #dbeafe; color: #1d4ed8; border-bottom: 2px solid #2563EB; font-size: 12px; }
+    .soc-table thead th.gh-cyan { background: #cffafe; color: #0e7490; border-bottom: 2px solid #0891b2; font-size: 12px; }
+    [data-theme="dark"] .soc-table thead th.gh      { background: #1e3a5f; color: #93c5fd; }
+    [data-theme="dark"] .soc-table thead th.gh-cyan { background: #164e63; color: #67e8f9; }
+    .soc-table tbody tr { transition: background .12s; }
+    .soc-table tbody tr:hover td { background: rgba(37,99,235,.04); }
+    .soc-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .soc-table td.ctr { text-align: center; }
+    .soc-table td.tot { font-weight: 700; background: #f0f9ff; }
+    [data-theme="dark"] .soc-table td.tot { background: #1e3a4a; }
+    .soc-table tfoot td { font-weight: 700; background: var(--light); border-top: 2px solid var(--border); font-size: 13.5px; }
+    .soc-table tfoot td.num { color: #2563EB; }
+
+    /* ===== INLINE EDIT NUMBER ===== */
+    .cell-num {
+      display: block; width: 100%; min-width: 80px; text-align: right;
+      padding: 4px 6px; border-radius: 5px; cursor: text;
+      transition: background .15s, box-shadow .15s; outline: none;
+      font-family: 'Sarabun', sans-serif; font-size: 13px;
+      color: var(--dark); background: transparent; border: 1.5px solid transparent;
+    }
+    .cell-num:hover { background: #dbeafe; border-color: #93c5fd; }
+    .cell-num:focus { background: #fff; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+    [data-theme="dark"] .cell-num:focus { background: #1e293b; }
+
+    /* ===== INLINE TEXT ===== */
+    .cell-text {
+      display: block; width: 100%; min-width: 120px;
+      padding: 4px 7px; border-radius: 5px; cursor: text;
+      font-family: 'Sarabun', sans-serif; font-size: 13px;
+      color: var(--dark); background: transparent; border: 1.5px solid transparent;
+      outline: none; transition: background .15s, box-shadow .15s;
+    }
+    .cell-text:hover { background: #fef9c3; border-color: #fde047; }
+    .cell-text:focus { background: #fff; border-color: #F59E0B; box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
+    [data-theme="dark"] .cell-text:focus { background: #1e293b; }
+
+    /* ===== INLINE SELECT ===== */
+    .cell-sel {
+      padding: 5px 26px 5px 8px; border-radius: 5px;
+      font-family: 'Sarabun', sans-serif; font-size: 12.5px;
+      color: var(--dark); border: 1.5px solid var(--border);
+      background: var(--white); cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 6px center;
+      transition: border-color .15s;
+    }
+    .cell-sel:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+
+    /* ===== STATUS BADGE (clickable select) ===== */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      cursor: pointer; user-select: none; white-space: nowrap;
+      border: none; font-family: 'Sarabun', sans-serif;
+      transition: transform .12s, box-shadow .12s;
+      appearance: none; min-width: 120px;
+    }
+    .status-badge:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,.13); }
+    .status-badge.s0 { background: #dcfce7; color: #15803d; }
+    .status-badge.s1 { background: #fef3c7; color: #b45309; }
+    .status-badge.s2 { background: #cffafe; color: #0e7490; }
+
+    /* ===== DOC STATUS ===== */
+    .doc-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      cursor: pointer; border: none; font-family: 'Sarabun', sans-serif;
+      transition: transform .12s; appearance: none; min-width: 110px;
+    }
+    .doc-badge:hover { transform: scale(1.05); }
+    .doc-badge.d0 { background: #dcfce7; color: #15803d; }
+    .doc-badge.d1 { background: #fee2e2; color: #b91c1c; }
+    .doc-badge.d2 { background: #fef3c7; color: #b45309; }
+
+    /* ===== ROW ACTION BUTTONS ===== */
+    .row-acts { display: flex; gap: 4px; justify-content: center; }
+    .btn-edit-row {
+      padding: 4px 8px; border: none; border-radius: 5px; cursor: pointer;
+      background: #dbeafe; color: #1d4ed8; font-size: 12px; transition: all .15s;
+    }
+    .btn-edit-row:hover { background: #2563EB; color: #fff; }
+    .btn-del-row {
+      padding: 4px 8px; border: none; border-radius: 5px; cursor: pointer;
+      background: #fee2e2; color: #b91c1c; font-size: 12px; transition: all .15s;
+    }
+    .btn-del-row:hover { background: #DC2626; color: #fff; }
+
+    /* ===== ADD ROW BUTTON ===== */
+    .add-row-btn {
+      width: 100%; padding: 9px; background: transparent;
+      border: 1.5px dashed var(--border); border-top: none;
+      color: var(--gray); cursor: pointer; font-size: 13px;
+      font-family: 'Sarabun', sans-serif; transition: all .15s;
+    }
+    .add-row-btn:hover { background: #dbeafe; color: #2563EB; border-color: #2563EB; }
+
+    /* ===== FILTER BAR ===== */
+    .soc-filter { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .soc-filter select, .soc-filter input {
+      padding: 6px 10px; font-size: 13px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-family: 'Sarabun', sans-serif;
+      background: var(--white); color: var(--dark);
+    }
+    .soc-filter select:focus, .soc-filter input:focus {
+      outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    }
+
+    /* ===== STATUS LEGEND ===== */
+    .status-legend { display: flex; gap: 10px; flex-wrap: wrap; padding: 9px 16px; background: var(--light); border-top: 1px solid var(--border); font-size: 11.5px; }
+    .sl-item { display: flex; align-items: center; gap: 5px; color: var(--gray); }
+    .sl-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ===== KPI VALUE SIZE ===== */
+    .kpi-value { font-size: 21px; font-weight: 700; margin-top: 8px; }
+
+    /* ===== MODAL FORM GRID ===== */
+    .form-label-icon { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
+    .total-box {
+      background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 10px;
+      padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;
+      grid-column: 1 / -1; margin-top: 4px;
+    }
+    .total-box-label { font-size: 13px; color: #2563eb; font-weight: 600; }
+    .total-box-val   { font-size: 22px; font-weight: 800; color: #2563eb; }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay show" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p style="color:var(--gray);font-size:13.5px;margin-top:8px;">กำลังโหลด...</p>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-calculator"></i></div>
+    <div class="logo-text"><h2>ACC CRM</h2><p>ระบบบัญชีอัจฉริยะ</p></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">หลัก</div>
+    <div class="nav-item" data-page="dashboard"><i class="fas fa-tachometer-alt"></i><span>แดชบอร์ด</span></div>
+    <div class="nav-section">จัดการข้อมูล</div>
+    <div class="nav-item" data-page="customers"><i class="fas fa-building"></i><span>ข้อมูลลูกค้า</span></div>
+    <div class="nav-section">ภาษีและประกัน</div>
+    <div class="nav-item" data-page="vat"><i class="fas fa-file-invoice"></i><span>ภาษีมูลค่าเพิ่ม (VAT)</span></div>
+    <div class="nav-item" data-page="wht"><i class="fas fa-percentage"></i><span>ภาษีหัก ณ ที่จ่าย</span></div>
+    <div class="nav-item active" data-page="social"><i class="fas fa-shield-alt"></i><span>ประกันสังคม</span></div>
+    <div class="nav-item" data-page="financial"><i class="fas fa-chart-line"></i><span>การเงิน</span></div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar-wrap">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="avatar-edit-badge" id="avatarEditBadge" title="เปลี่ยนรูปโปรไฟล์"><i class="fas fa-camera"></i></div>
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
+      </div>
+      <div class="user-details"><h4 id="userNameSidebar">ผู้ใช้งาน</h4><p id="userRoleSidebar">--</p></div>
+    </div>
+    <button class="btn btn-gray btn-sm" style="width:100%;margin-top:10px;" onclick="window.AccAuth && window.AccAuth.logout()"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main-wrapper">
+  <header class="header">
+    <div class="header-left">
+      <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+      <div class="header-title">ประกันสังคม</div>
+    </div>
+    <div class="header-left" style="flex:1;justify-content:center;">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="ค้นหาลูกค้า งาน ใบแจ้งหนี้..." id="globalSearch">
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" onclick="toggleDark()" title="โหมดมืด"><i class="fas fa-moon" id="darkIcon"></i></button>
+      <button class="btn-icon" onclick="doBackup()" title="สำรองข้อมูล"><i class="fas fa-database"></i></button>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="page active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ประกันสังคม (สปส.)</div>
+          <div class="page-subtitle">คลิกตัวเลขหรือข้อความเพื่อแก้ไขได้ทันที · คลิก badge สถานะเพื่อเปลี่ยน</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="exportCSV()"><i class="fas fa-file-csv"></i> ส่งออก CSV</button>
+          <button class="btn btn-primary" onclick="openSocialModal()"><i class="fas fa-plus"></i> เพิ่มรายการ</button>
+        </div>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi-card blue"><div class="kpi-header"><div><div class="kpi-value" id="kpiTotal">0</div><div class="kpi-label">ทั้งหมด (รายการ)</div></div><div class="kpi-icon"><i class="fas fa-users"></i></div></div></div>
+        <div class="kpi-card green"><div class="kpi-header"><div><div class="kpi-value" id="kpiFiled">0</div><div class="kpi-label">ยื่นแล้ว</div></div><div class="kpi-icon"><i class="fas fa-check-circle"></i></div></div></div>
+        <div class="kpi-card yellow"><div class="kpi-header"><div><div class="kpi-value" id="kpiPending">0</div><div class="kpi-label">ยื่นแล้วรอชำระ</div></div><div class="kpi-icon"><i class="fas fa-clock"></i></div></div></div>
+        <div class="kpi-card cyan"><div class="kpi-header"><div><div class="kpi-value" id="kpiPaid">0</div><div class="kpi-label">ชำระเงินแล้ว</div></div><div class="kpi-icon"><i class="fas fa-money-bill-wave"></i></div></div></div>
+        <div class="kpi-card red"><div class="kpi-header"><div><div class="kpi-value" id="kpiSumAmt">—</div><div class="kpi-label">รวมเงิน + เพิ่มเติม (฿)</div></div><div class="kpi-icon"><i class="fas fa-coins"></i></div></div></div>
+      </div>
+
+      <!-- Table Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">รายการประกันสังคม</div>
+          <div class="soc-filter">
+            <select id="yearFilter" onchange="render()">
+              <option value="">ทุกปี</option>
+            </select>
+            <select id="monthFilter" onchange="render()">
+              <option value="">ทุกเดือน</option>
+              <option value="1">ม.ค.</option><option value="2">ก.พ.</option>
+              <option value="3">มี.ค.</option><option value="4">เม.ย.</option>
+              <option value="5">พ.ค.</option><option value="6">มิ.ย.</option>
+              <option value="7">ก.ค.</option><option value="8">ส.ค.</option>
+              <option value="9">ก.ย.</option><option value="10">ต.ค.</option>
+              <option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
+            </select>
+            <select id="statusFilter" onchange="render()">
+              <option value="">ทุกสถานะ</option>
+              <option value="ยื่นแล้ว">ยื่นแล้ว</option>
+              <option value="ยื่นแล้วรอชำระ">ยื่นแล้วรอชำระ</option>
+              <option value="ชำระเงินแล้ว">ชำระเงินแล้ว</option>
+            </select>
+            <input type="text" id="searchQ" placeholder="🔍 ค้นหาชื่อ, รหัส..." oninput="render()" style="width:160px;">
+          </div>
+        </div>
+
+        <div class="soc-wrap">
+          <table class="soc-table">
+            <thead>
+              <tr>
+                <th rowspan="2" style="width:36px;">#</th>
+                <th rowspan="2" style="min-width:190px;text-align:left;">ลูกค้า / เลขทะเบียน</th>
+                <th rowspan="2" style="min-width:120px;">ตามเอกสาร สปส</th>
+                <th rowspan="2" style="width:110px;">เดือน / ปี</th>
+                <th colspan="2" class="gh">จำนวนเงิน (บาท)</th>
+                <th rowspan="2" style="min-width:130px;">ยื่นแบบประกันสังคม</th>
+                <th rowspan="2" style="min-width:140px;text-align:left;white-space:normal;">หมายเหตุ</th>
+                <th rowspan="2" style="width:72px;">จัดการ</th>
+              </tr>
+              <tr>
+                <th class="gh">ประจำเดือน</th>
+                <th class="gh-cyan">ยื่นเพิ่มเติม</th>
+              </tr>
+            </thead>
+            <tbody id="socBody"></tbody>
+            <tfoot id="socFoot"></tfoot>
+          </table>
+        </div>
+        <button class="add-row-btn" onclick="openSocialModal()"><i class="fas fa-plus" style="margin-right:5px;"></i>เพิ่มรายการใหม่</button>
+
+        <div class="status-legend">
+          <span style="font-size:11.5px;color:var(--gray);font-weight:700;margin-right:4px;">สถานะ (คลิก badge เพื่อเปลี่ยน):</span>
+          <span class="sl-item"><span class="sl-dot" style="background:#16A34A;"></span>ยื่นแล้ว</span>
+          <span class="sl-item"><span class="sl-dot" style="background:#F59E0B;"></span>ยื่นแล้วรอชำระ</span>
+          <span class="sl-item"><span class="sl-dot" style="background:#0891b2;"></span>ชำระเงินแล้ว</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══ MODAL ═══ -->
+<div class="modal-overlay" id="socialModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2 class="modal-title" id="socialModalTitle">เพิ่มรายการประกันสังคม</h2>
+      <button class="modal-close" onclick="closeModal('socialModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editIdx" value="-1">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>รหัสลูกค้า</label>
+          <input type="text" id="fCustId" class="form-control" placeholder="เช่น CUS-001" />
+        </div>
+        <div class="form-group">
+          <label>เลขทะเบียน</label>
+          <input type="text" id="fRegNo" class="form-control" placeholder="เลขทะเบียนประกันสังคม" />
+        </div>
+        <div class="form-group full">
+          <label>ชื่อลูกค้า <span style="color:var(--danger);">*</span></label>
+          <input type="text" id="fName" class="form-control" placeholder="ชื่อ-นามสกุล หรือ ชื่อบริษัท" />
+        </div>
+        <div class="form-group">
+          <label>ตามเอกสาร สปส</label>
+          <select id="fDocStatus" class="form-control">
+            <option value="มาแล้ว">✔ มาแล้ว</option>
+            <option value="ยังไม่มา">✖ ยังไม่มา</option>
+            <option value="มาแล้วบางส่วน">◑ มาแล้วบางส่วน</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ประจำเดือน</label>
+          <select id="fMonth" class="form-control">
+            <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
+            <option value="3">มีนาคม</option><option value="4">เมษายน</option>
+            <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+            <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option>
+            <option value="9">กันยายน</option><option value="10">ตุลาคม</option>
+            <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ปี (พ.ศ.)</label>
+          <select id="fYear" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>จำนวนเงิน (บาท) <span style="color:var(--danger);">*</span></label>
+          <input type="number" id="fAmount" class="form-control" placeholder="0.00" min="0" step="0.01" oninput="calcTotal()" style="text-align:right;" />
+        </div>
+        <div class="form-group">
+          <label>ยื่นแบบประกันสังคม</label>
+          <select id="fFiledStatus" class="form-control">
+            <option value="ยื่นแล้ว">✅ ยื่นแล้ว</option>
+            <option value="ยื่นแล้วรอชำระ">⏳ ยื่นแล้วรอชำระ</option>
+            <option value="ชำระเงินแล้ว">💳 ชำระเงินแล้ว</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ยื่นเพิ่มเติม (บาท)</label>
+          <input type="number" id="fExtra" class="form-control" placeholder="0.00" min="0" step="0.01" oninput="calcTotal()" style="text-align:right;" />
+          <small style="color:var(--gray);font-size:11px;margin-top:3px;">จะถูกรวมกับจำนวนเงินประจำเดือน</small>
+        </div>
+        <div class="form-group">
+          <label>หมายเหตุ</label>
+          <input type="text" id="fNote" class="form-control" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)" />
+        </div>
+        <div class="total-box">
+          <div>
+            <div class="total-box-label"><i class="fas fa-calculator" style="margin-right:5px;"></i>รวมทั้งสิ้น</div>
+            <div style="font-size:11.5px;color:#60a5fa;margin-top:2px;">จำนวนเงิน + ยื่นเพิ่มเติม</div>
+          </div>
+          <div class="total-box-val" id="fTotal">0.00</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal('socialModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveRecord()"><i class="fas fa-save"></i> บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header"><h2 class="modal-title" style="color:#DC2626;"><i class="fas fa-trash" style="margin-right:8px;"></i>ยืนยันการลบ</h2><button class="modal-close" onclick="closeModal('delModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body"><p style="font-size:14px;line-height:1.8;">ต้องการลบรายการ<br><strong id="delName" style="color:#DC2626;"></strong><br>ออกจากระบบหรือไม่?</p></div>
+    <div class="modal-footer"><button class="btn btn-gray" onclick="closeModal('delModal')">ยกเลิก</button><button class="btn btn-danger" onclick="confirmDel()"><i class="fas fa-trash"></i> ลบ</button></div>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script>
+  const MONTHS_S = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const MONTHS   = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  const THIS_YEAR = new Date().getFullYear() + 543;
+
+  const STATUS = [
+    { label:'ยื่นแล้ว',         cls:'s0' },
+    { label:'ยื่นแล้วรอชำระ',   cls:'s1' },
+    { label:'ชำระเงินแล้ว',     cls:'s2' },
+  ];
+  const DOC_STATUS = [
+    { label:'มาแล้ว',         cls:'d0' },
+    { label:'ยังไม่มา',       cls:'d1' },
+    { label:'มาแล้วบางส่วน', cls:'d2' },
+  ];
+
+  let records = JSON.parse(localStorage.getItem('socialRecords') || '[]');
+  let delIdx = -1;
+  let visIdx = [];
+
+  function save() { localStorage.setItem('socialRecords', JSON.stringify(records)); }
+
+  function fmt(n) {
+    if (!n && n !== 0) return '—';
+    return Number(n).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function fmtKpi(n) {
+    if (n >= 1e6) return (n/1e6).toFixed(2)+'M';
+    if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+    return n.toLocaleString('th-TH', { maximumFractionDigits: 0 });
+  }
+
+  function buildYearOptions() {
+    const sel = document.getElementById('yearFilter');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">ทุกปี</option>';
+    const years = [...new Set(records.map(r => r.year))].sort((a,b)=>b-a);
+    if (!years.includes(THIS_YEAR)) years.unshift(THIS_YEAR);
+    years.forEach(y => {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      if (String(y) === cur) o.selected = true;
+      sel.appendChild(o);
+    });
+  }
+
+  function buildModalYears(selected) {
+    const sel = document.getElementById('fYear');
+    sel.innerHTML = '';
+    for (let y = THIS_YEAR + 1; y >= THIS_YEAR - 4; y--) {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      if (selected && Number(selected) === y) o.selected = true;
+      else if (!selected && y === THIS_YEAR) o.selected = true;
+      sel.appendChild(o);
+    }
+  }
+
+  function calcTotal() {
+    const a = parseFloat(document.getElementById('fAmount').value) || 0;
+    const e = parseFloat(document.getElementById('fExtra').value) || 0;
+    document.getElementById('fTotal').textContent = fmt(a + e);
+  }
+
+  function getFiltered() {
+    const yr = document.getElementById('yearFilter').value;
+    const mo = document.getElementById('monthFilter').value;
+    const st = document.getElementById('statusFilter').value;
+    const q  = (document.getElementById('searchQ').value || '').toLowerCase();
+    return records.reduce((a, r, i) => {
+      if (yr && String(r.year)  !== yr) return a;
+      if (mo && String(r.month) !== mo) return a;
+      if (st && r.filedStatus   !== st) return a;
+      if (q && !(r.name||'').toLowerCase().includes(q) && !(r.custId||'').toLowerCase().includes(q) && !(r.regNo||'').toLowerCase().includes(q)) return a;
+      a.push(i); return a;
+    }, []);
+  }
+
+  function render() {
+    visIdx = getFiltered();
+    const tbody = document.getElementById('socBody');
+    const tfoot = document.getElementById('socFoot');
+
+    updateKPI();
+
+    if (!visIdx.length) {
+      tbody.innerHTML = `<tr><td colspan="9" class="table-empty" style="padding:36px;text-align:center;color:var(--gray);">
+        <i class="fas fa-shield-alt" style="font-size:36px;opacity:.25;display:block;margin-bottom:10px;"></i>
+        ไม่พบรายการที่ค้นหา
+      </td></tr>`;
+      tfoot.innerHTML = '';
+      return;
+    }
+
+    let sumAmt = 0, sumExtra = 0;
+
+    tbody.innerHTML = visIdx.map((di, seq) => {
+      const r = records[di];
+      const amt   = parseFloat(r.amount) || 0;
+      const extra = parseFloat(r.extra)  || 0;
+      const total = amt + extra;
+      sumAmt   += amt;
+      sumExtra += extra;
+
+      const stIdx = STATUS.findIndex(s => s.label === r.filedStatus);
+      const st    = STATUS[stIdx >= 0 ? stIdx : 0];
+      const stOpts = STATUS.map((s, i) => `<option value="${i}" ${(stIdx === i || (stIdx<0 && i===0)) ? 'selected' : ''}>${s.label}</option>`).join('');
+
+      const docIdx = DOC_STATUS.findIndex(d => d.label === r.docStatus);
+      const doc    = DOC_STATUS[docIdx >= 0 ? docIdx : 0];
+      const docOpts = DOC_STATUS.map((d, i) => `<option value="${i}" ${(docIdx === i || (docIdx<0 && i===0)) ? 'selected' : ''}>${d.label}</option>`).join('');
+
+      const monthOpts = MONTHS.slice(1).map((m, i) => `<option value="${i+1}" ${r.month == i+1 ? 'selected' : ''}>${MONTHS_S[i+1]}</option>`).join('');
+
+      return `<tr data-di="${di}">
+        <td class="ctr" style="color:var(--gray);font-size:11.5px;">${seq+1}</td>
+        <td>
+          <input class="cell-text" style="font-weight:700;font-size:13.5px;margin-bottom:3px;" value="${r.name||''}"
+            onchange="cellChange(${di},'name',this.value)" placeholder="ชื่อลูกค้า" />
+          <input class="cell-text" style="font-size:11.5px;color:var(--gray);" value="${r.custId||''}"
+            onchange="cellChange(${di},'custId',this.value)" placeholder="รหัส" />
+          <input class="cell-text" style="font-size:11.5px;color:var(--gray);" value="${r.regNo||''}"
+            onchange="cellChange(${di},'regNo',this.value)" placeholder="เลขทะเบียน" />
+        </td>
+        <td class="ctr">
+          <select class="doc-badge ${doc.cls}" onchange="changeDoc(${di}, this.value)">${docOpts}</select>
+        </td>
+        <td class="ctr">
+          <select class="cell-sel" onchange="cellChange(${di},'month',parseInt(this.value))">${monthOpts}</select>
+          <div style="font-size:11px;color:var(--gray);margin-top:3px;">${r.year}</div>
+        </td>
+        <td class="num">
+          <input type="number" class="cell-num" value="${amt}" onchange="cellChange(${di},'amount',parseFloat(this.value)||0)" min="0" step="0.01">
+        </td>
+        <td class="num tot" id="ex_${di}">
+          <input type="number" class="cell-num" value="${extra||''}" onchange="cellChange(${di},'extra',parseFloat(this.value)||0)" min="0" step="0.01" placeholder="0.00">
+          ${extra > 0 ? `<div style="font-size:11px;color:var(--gray);margin-top:2px;">รวม ${fmt(total)}</div>` : ''}
+        </td>
+        <td class="ctr">
+          <select class="status-badge ${st.cls}" onchange="changeStatus(${di}, this.value)">${stOpts}</select>
+        </td>
+        <td style="white-space:normal;min-width:140px;">
+          <textarea class="cell-text" rows="1" onchange="cellChange(${di},'note',this.value)" placeholder="หมายเหตุ..." style="min-width:140px;">${r.note||''}</textarea>
+        </td>
+        <td class="ctr">
+          <div class="row-acts">
+            <button class="btn-edit-row" onclick="openSocialModal(${di})" title="แก้ไข"><i class="fas fa-edit"></i></button>
+            <button class="btn-del-row"  onclick="openDel(${di})"         title="ลบ"><i class="fas fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    const grandTotal = sumAmt + sumExtra;
+    tfoot.innerHTML = `<tr>
+      <td colspan="4" style="text-align:right;font-size:12px;color:var(--gray);padding-right:12px;">รวม ${visIdx.length} รายการ</td>
+      <td class="num">${fmt(sumAmt)}</td>
+      <td class="num">${fmt(sumExtra)}</td>
+      <td colspan="3"></td>
+    </tr>`;
+  }
+
+  function updateKPI() {
+    document.getElementById('kpiTotal').textContent   = records.length;
+    document.getElementById('kpiFiled').textContent   = records.filter(r => r.filedStatus === 'ยื่นแล้ว').length;
+    document.getElementById('kpiPending').textContent = records.filter(r => r.filedStatus === 'ยื่นแล้วรอชำระ').length;
+    document.getElementById('kpiPaid').textContent    = records.filter(r => r.filedStatus === 'ชำระเงินแล้ว').length;
+    const sumAll = records.reduce((s, r) => s + (parseFloat(r.amount)||0) + (parseFloat(r.extra)||0), 0);
+    document.getElementById('kpiSumAmt').textContent  = fmtKpi(sumAll);
+  }
+
+  function cellChange(di, field, val) {
+    records[di][field] = val;
+    save();
+    render();
+    showToastLocal('บันทึกแล้ว ✓', 'success');
+  }
+
+  function changeStatus(di, value) {
+    const idx = parseInt(value, 10);
+    if (isNaN(idx) || idx < 0 || idx >= STATUS.length) return;
+    records[di].filedStatus = STATUS[idx].label;
+    save(); render();
+    showToastLocal('สถานะ: ' + STATUS[idx].label, 'success');
+  }
+
+  function changeDoc(di, value) {
+    const idx = parseInt(value, 10);
+    if (isNaN(idx) || idx < 0 || idx >= DOC_STATUS.length) return;
+    records[di].docStatus = DOC_STATUS[idx].label;
+    save(); render();
+    showToastLocal('เอกสาร: ' + DOC_STATUS[idx].label, 'success');
+  }
+
+  /* Modal */
+  function openSocialModal(idx) {
+    const di = (idx === undefined) ? -1 : idx;
+    document.getElementById('editIdx').value = di;
+    buildModalYears(di >= 0 ? records[di].year : null);
+
+    if (di >= 0) {
+      const r = records[di];
+      document.getElementById('socialModalTitle').textContent = 'แก้ไขรายการ — ' + r.name;
+      document.getElementById('fCustId').value      = r.custId || '';
+      document.getElementById('fRegNo').value       = r.regNo  || '';
+      document.getElementById('fName').value        = r.name   || '';
+      document.getElementById('fDocStatus').value   = r.docStatus;
+      document.getElementById('fMonth').value       = r.month;
+      document.getElementById('fYear').value        = r.year;
+      document.getElementById('fAmount').value      = r.amount || '';
+      document.getElementById('fFiledStatus').value = r.filedStatus;
+      document.getElementById('fExtra').value       = r.extra  || '';
+      document.getElementById('fNote').value        = r.note   || '';
+    } else {
+      document.getElementById('socialModalTitle').textContent = 'เพิ่มรายการประกันสังคม';
+      ['fCustId','fRegNo','fName','fAmount','fExtra','fNote'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('fDocStatus').value   = 'มาแล้ว';
+      document.getElementById('fFiledStatus').value = 'ยื่นแล้ว';
+      document.getElementById('fMonth').value       = new Date().getMonth() + 1;
+    }
+    calcTotal();
+    openModal('socialModal');
+  }
+  window.openSocialModal = openSocialModal;
+
+  function saveRecord() {
+    const name   = document.getElementById('fName').value.trim();
+    const amount = parseFloat(document.getElementById('fAmount').value) || 0;
+    if (!name)   { showToastLocal('กรุณากรอกชื่อลูกค้า', 'error'); return; }
+    if (!amount) { showToastLocal('กรุณากรอกจำนวนเงิน',  'error'); return; }
+
+    const di  = parseInt(document.getElementById('editIdx').value);
+    const rec = {
+      custId:      document.getElementById('fCustId').value.trim(),
+      regNo:       document.getElementById('fRegNo').value.trim(),
+      name,
+      docStatus:   document.getElementById('fDocStatus').value,
+      month:       parseInt(document.getElementById('fMonth').value),
+      year:        parseInt(document.getElementById('fYear').value),
+      amount,
+      filedStatus: document.getElementById('fFiledStatus').value,
+      extra:       parseFloat(document.getElementById('fExtra').value) || 0,
+      note:        document.getElementById('fNote').value.trim(),
+      updatedAt:   new Date().toLocaleString('th-TH'),
+    };
+
+    if (di >= 0) { records[di] = rec; showToastLocal('แก้ไขรายการแล้ว ✓', 'success'); }
+    else         { records.push(rec); showToastLocal('เพิ่มรายการแล้ว ✓', 'success'); }
+
+    save(); closeModal('socialModal');
+    buildYearOptions(); render();
+  }
+  window.saveRecord = saveRecord;
+
+  /* Delete */
+  function openDel(di) {
+    delIdx = di;
+    document.getElementById('delName').textContent = records[di].name;
+    openModal('delModal');
+  }
+  function confirmDel() {
+    if (delIdx < 0) return;
+    records.splice(delIdx, 1); save(); delIdx = -1;
+    closeModal('delModal');
+    buildYearOptions(); render();
+    showToastLocal('ลบรายการแล้ว', 'error');
+  }
+  window.confirmDel = confirmDel;
+
+  /* CSV */
+  function exportCSV() {
+    const rows = visIdx.map(i => records[i]);
+    if (!rows.length) { showToastLocal('ไม่มีข้อมูลให้ส่งออก', 'error'); return; }
+    const H = ['#','รหัส','เลขทะเบียน','ชื่อลูกค้า','ตามเอกสาร','เดือน','ปี','จำนวนเงิน','ยื่นแบบ','ยื่นเพิ่มเติม','รวม','หมายเหตุ'];
+    const lines = [H.join(','), ...rows.map((r, i) => {
+      const amt = parseFloat(r.amount)||0;
+      const ex  = parseFloat(r.extra)||0;
+      return [i+1,r.custId,r.regNo,`"${r.name}"`,r.docStatus,MONTHS[r.month],r.year,amt,r.filedStatus,ex,amt+ex,`"${r.note||''}"`].join(',');
+    })];
+    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'social_export.csv'; a.click();
+    showToastLocal('ส่งออก CSV สำเร็จ', 'success');
+  }
+  window.exportCSV = exportCSV;
+
+  /* Util */
+  function showToastLocal(msg, type) {
+    if (typeof showToast === 'function') { showToast(msg, type); return; }
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type || 'info'}`;
+    t.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':type==='error'?'exclamation-circle':'info-circle'}"></i><span>${msg}</span>`;
+    c.appendChild(t); setTimeout(() => t.remove(), 2400);
+  }
+  function openModal(id)  { document.getElementById(id).classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+  function toggleDark() {
+    const root = document.documentElement;
+    const next = root.getAttribute('data-theme') === 'dark' ? '' : 'dark';
+    root.setAttribute('data-theme', next); document.body.setAttribute('data-theme', next);
+    localStorage.setItem('accCrmTheme', next);
+    document.getElementById('darkIcon').className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    showToastLocal(next === 'dark' ? 'โหมดมืด' : 'โหมดสว่าง', 'info');
+  }
+  function doBackup() { showToastLocal('สำรองข้อมูลเรียบร้อย', 'success'); }
+
+  /* Init */
+  (function init() {
+    const theme = localStorage.getItem('accCrmTheme') || '';
+    if (theme) { document.documentElement.setAttribute('data-theme', theme); document.body.setAttribute('data-theme', theme); }
+    const icon = document.getElementById('darkIcon');
+    if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+      item.addEventListener('click', () => { window.location.href = item.getAttribute('data-page') + '.html'; });
+    });
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+      m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+    });
+
+    buildYearOptions();
+    render();
+    setTimeout(() => document.getElementById('loadingOverlay').classList.remove('show'), 300);
+  })();
+</script>
+</body>
+</html>

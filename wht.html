@@ -1,0 +1,703 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACC CRM – ภาษีหัก ณ ที่จ่าย</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+/* ===== WHT TABLE ===== */
+.wht-wrap { overflow-x: auto; }
+.wht-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.wht-table th, .wht-table td { padding: 8px 10px; border: 1px solid var(--border); white-space: nowrap; }
+.wht-table thead th { background: var(--light); font-size: 11px; font-weight: 700; color: var(--gray); text-align: center; text-transform: uppercase; letter-spacing: .05em; }
+.wht-table thead th.gh       { background: #dbeafe; color: #1d4ed8; border-bottom: 2px solid #2563EB; font-size: 12px; }
+.wht-table thead th.gh-green { background: #dcfce7; color: #15803d; border-bottom: 2px solid #16A34A; font-size: 12px; }
+.wht-table thead th.gh-yellow{ background: #fef3c7; color: #b45309; border-bottom: 2px solid #F59E0B; font-size: 12px; }
+.wht-table thead th.gh-cyan  { background: #cffafe; color: #0e7490; border-bottom: 2px solid #0891b2; font-size: 12px; }
+[data-theme="dark"] .wht-table thead th.gh       { background: #1e3a5f; color: #93c5fd; }
+[data-theme="dark"] .wht-table thead th.gh-green { background: #14532d; color: #86efac; }
+[data-theme="dark"] .wht-table thead th.gh-yellow{ background: #451a03; color: #fde68a; }
+[data-theme="dark"] .wht-table thead th.gh-cyan  { background: #164e63; color: #67e8f9; }
+.wht-table tbody tr { transition: background .12s; }
+.wht-table tbody tr:hover td { background: rgba(37,99,235,.04); }
+.wht-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.wht-table td.ctr { text-align: center; }
+.wht-table td.tot { font-weight: 700; background: #f0f9ff; }
+[data-theme="dark"] .wht-table td.tot { background: #1e3a4a; }
+.wht-table tfoot td { font-weight: 700; background: var(--light); border-top: 2px solid var(--border); font-size: 13.5px; }
+.wht-table tfoot td.num { color: #2563EB; }
+
+/* ===== INLINE EDIT NUMBER ===== */
+.cell-num {
+  display: block; width: 100%; min-width: 72px; text-align: right;
+  padding: 4px 6px; border-radius: 5px; cursor: text;
+  transition: background .15s, box-shadow .15s; outline: none;
+  font-family: 'Sarabun', sans-serif; font-size: 13px;
+  color: var(--dark); background: transparent; border: 1.5px solid transparent;
+}
+.cell-num:hover { background: #dbeafe; border-color: #93c5fd; }
+.cell-num:focus { background: #fff; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+[data-theme="dark"] .cell-num:focus { background: #1e293b; }
+
+/* ===== INLINE NOTE ===== */
+.cell-note {
+  display: block; width: 100%; min-width: 140px;
+  padding: 4px 7px; border-radius: 5px; cursor: text;
+  font-family: 'Sarabun', sans-serif; font-size: 12.5px;
+  color: var(--dark); background: transparent; border: 1.5px solid transparent;
+  resize: none; outline: none; white-space: normal;
+  transition: background .15s, box-shadow .15s;
+}
+.cell-note:hover { background: #fef9c3; border-color: #fde047; }
+.cell-note:focus { background: #fff; border-color: #F59E0B; box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
+[data-theme="dark"] .cell-note:focus { background: #1e293b; }
+
+/* ===== STATUS BADGE ===== */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  cursor: pointer; user-select: none; white-space: nowrap;
+  border: none; font-family: 'Sarabun', sans-serif;
+  transition: transform .12s, box-shadow .12s;
+}
+.status-badge:hover { transform: scale(1.07); box-shadow: 0 2px 8px rgba(0,0,0,.13); }
+.status-badge:active { transform: scale(.96); }
+.status-badge.s0 { background: #dcfce7; color: #15803d; }
+.status-badge.s1 { background: #fef3c7; color: #b45309; }
+.status-badge.s2 { background: #fee2e2; color: #b91c1c; }
+.status-badge.s3 { background: #e0e7ff; color: #4338ca; }
+.status-badge.s4 { background: #f1f5f9; color: #475569; }
+
+.status-select {
+  min-width: 120px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+.status-select option {
+  color: inherit;
+}
+
+/* ===== EXTRA COUNT ===== */
+.extra-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 28px; border-radius: 50%;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  border: none; font-family: 'Sarabun', sans-serif; transition: transform .12s;
+}
+.extra-count:hover { transform: scale(1.18); }
+.ec0 { background: #f1f5f9; color: #94a3b8; }
+.ec1 { background: #dbeafe; color: #1d4ed8; }
+.ec2 { background: #fef3c7; color: #b45309; }
+.ec3p{ background: #fee2e2; color: #b91c1c; }
+
+/* ===== ROW ACTION BUTTONS ===== */
+.row-acts { display: flex; gap: 4px; justify-content: center; }
+.btn-edit-row {
+  padding: 4px 8px; border: none; border-radius: 5px; cursor: pointer;
+  background: #dbeafe; color: #1d4ed8; font-size: 12px; transition: all .15s;
+}
+.btn-edit-row:hover { background: #2563EB; color: #fff; }
+.btn-del-row {
+  padding: 4px 8px; border: none; border-radius: 5px; cursor: pointer;
+  background: #fee2e2; color: #b91c1c; font-size: 12px; transition: all .15s;
+}
+.btn-del-row:hover { background: #DC2626; color: #fff; }
+
+/* ===== ADD ROW ===== */
+.add-row-btn {
+  width: 100%; padding: 9px; background: transparent;
+  border: 1.5px dashed var(--border); border-top: none;
+  color: var(--gray); cursor: pointer; font-size: 13px;
+  font-family: 'Sarabun', sans-serif; transition: all .15s;
+}
+.add-row-btn:hover { background: #dbeafe; color: #2563EB; border-color: #2563EB; }
+
+/* ===== STATUS LEGEND ===== */
+.status-legend { display: flex; gap: 10px; flex-wrap: wrap; padding: 9px 16px; background: var(--light); border-top: 1px solid var(--border); font-size: 11.5px; }
+.sl-item { display: flex; align-items: center; gap: 5px; color: var(--gray); }
+.sl-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+/* ===== FILTER BAR ===== */
+.wht-filter { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wht-filter select, .wht-filter input {
+  padding: 6px 10px; font-size: 13px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); font-family: 'Sarabun', sans-serif;
+  background: var(--white); color: var(--dark);
+}
+.wht-filter select:focus, .wht-filter input:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+
+/* ===== TOOLTIP ===== */
+.tip { position: relative; }
+.tip:hover::after {
+  content: attr(data-tip); position: absolute; bottom: 130%; left: 50%;
+  transform: translateX(-50%); background: #1e293b; color: #fff;
+  font-size: 11px; padding: 3px 8px; border-radius: 5px;
+  white-space: nowrap; z-index: 999; pointer-events: none;
+}
+.kpi-value { font-size: 21px; font-weight: 700; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="toast-container" id="toastContainer"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-calculator"></i></div>
+    <div class="logo-text"><h2>ACC CRM</h2><p>ระบบบัญชีอัจฉริยะ</p></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">หลัก</div>
+    <div class="nav-item" data-page="dashboard"><i class="fas fa-tachometer-alt"></i><span>แดชบอร์ด</span></div>
+    <div class="nav-section">จัดการข้อมูล</div>
+    <div class="nav-item" data-page="customers"><i class="fas fa-building"></i><span>ข้อมูลลูกค้า</span></div>
+    <div class="nav-section">ภาษีและประกัน</div>
+    <div class="nav-item" data-page="vat"><i class="fas fa-file-invoice"></i><span>ภาษีมูลค่าเพิ่ม (VAT)</span></div>
+    <div class="nav-item active" data-page="wht"><i class="fas fa-percentage"></i><span>ภาษีหัก ณ ที่จ่าย</span></div>
+    <div class="nav-item" data-page="social"><i class="fas fa-shield-alt"></i><span>ประกันสังคม</span></div>
+    <div class="nav-item" data-page="financial"><i class="fas fa-chart-line"></i><span>การเงิน</span></div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar-wrap">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="avatar-edit-badge" id="avatarEditBadge" title="เปลี่ยนรูปโปรไฟล์"><i class="fas fa-camera"></i></div>
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
+      </div>
+      <div class="user-details"><h4 id="userNameSidebar">ผู้ใช้งาน</h4><p id="userRoleSidebar">--</p></div>
+    </div>
+    <button class="btn btn-gray btn-sm" style="width:100%;margin-top:10px;" onclick="window.AccAuth && window.AccAuth.logout()"><i class="fas fa-sign-out-alt"></i> ออกจากระบบ</button>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <header class="header">
+    <div class="header-left">
+      <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+      <div class="header-title">ภาษีหัก ณ ที่จ่าย</div>
+    </div>
+    <div class="header-left" style="flex:1;justify-content:center;">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="ค้นหาลูกค้า งาน ใบแจ้งหนี้..." id="globalSearch">
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn-icon" onclick="toggleDark()" title="โหมดมืด"><i class="fas fa-moon" id="darkIcon"></i></button>
+      <button class="btn-icon" onclick="doBackup()" title="สำรองข้อมูล"><i class="fas fa-database"></i></button>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="page active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ภาษีหัก ณ ที่จ่าย (ภ.ง.ด.)</div>
+          <div class="page-subtitle">คลิกตัวเลขหรือหมายเหตุเพื่อแก้ไขได้ทันที · คลิก badge สถานะเพื่อเปลี่ยน</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="exportCSV()"><i class="fas fa-file-csv"></i> ส่งออก CSV</button>
+          <button class="btn btn-primary" onclick="addNewRow()"><i class="fas fa-plus"></i> เพิ่มรายการ</button>
+        </div>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi-card blue"><div class="kpi-header"><div><div class="kpi-value" id="kpi1">—</div><div class="kpi-label">ภ.ง.ด.1 รวม (฿)</div></div><div class="kpi-icon"><i class="fas fa-file-invoice"></i></div></div></div>
+        <div class="kpi-card green"><div class="kpi-header"><div><div class="kpi-value" id="kpi3">—</div><div class="kpi-label">ภ.ง.ด.3 รวม (฿)</div></div><div class="kpi-icon"><i class="fas fa-calculator"></i></div></div></div>
+        <div class="kpi-card yellow"><div class="kpi-header"><div><div class="kpi-value" id="kpi53">—</div><div class="kpi-label">ภ.ง.ด.53 รวม (฿)</div></div><div class="kpi-icon"><i class="fas fa-plus-circle"></i></div></div></div>
+        <div class="kpi-card red"><div class="kpi-header"><div><div class="kpi-value" id="kpiExtra">—</div><div class="kpi-label">ยื่นเพิ่มเติม (฿)</div></div><div class="kpi-icon"><i class="fas fa-sync"></i></div></div></div>
+        <div class="kpi-card cyan"><div class="kpi-header"><div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-label">รวมทั้งหมด (฿)</div></div><div class="kpi-icon"><i class="fas fa-chart-pie"></i></div></div></div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">รายการภาษีหัก ณ ที่จ่าย</div>
+          <div class="wht-filter">
+            <select id="yearFilter" onchange="render()">
+              <option value="">ทุกปี</option>
+              <option value="2568" selected>2568</option>
+              <option value="2567">2567</option>
+            </select>
+            <select id="monthFilter" onchange="render()">
+              <option value="">ทุกเดือน</option>
+              <option value="01">ม.ค.</option><option value="02">ก.พ.</option>
+              <option value="03">มี.ค.</option><option value="04">เม.ย.</option>
+              <option value="05">พ.ค.</option><option value="06">มิ.ย.</option>
+              <option value="07">ก.ค.</option><option value="08">ส.ค.</option>
+              <option value="09">ก.ย.</option><option value="10">ต.ค.</option>
+              <option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
+            </select>
+            <input type="text" id="searchQ" placeholder="🔍 ค้นหาบริษัท..." oninput="render()" style="width:150px;">
+          </div>
+        </div>
+
+        <div class="wht-wrap">
+          <table class="wht-table">
+            <thead>
+              <tr>
+                <th rowspan="2" style="min-width:32px;">#</th>
+                <th rowspan="2" style="min-width:190px;text-align:left;">ลูกค้า / เลขภาษี</th>
+                <th colspan="2" class="gh">ภ.ง.ด.1</th>
+                <th colspan="2" class="gh-green">ภ.ง.ด.3</th>
+                <th colspan="2" class="gh-yellow">ภ.ง.ด.53</th>
+                <th colspan="3" class="gh-cyan">รวม</th>
+                <th rowspan="2" style="min-width:110px;">สถานะ</th>
+                <th rowspan="2" style="min-width:88px;">ยื่นเพิ่มเติม</th>
+                <th rowspan="2" style="min-width:160px;text-align:left;white-space:normal;">หมายเหตุ</th>
+                <th rowspan="2" style="min-width:72px;">จัดการ</th>
+              </tr>
+              <tr>
+                <th>เราจ่าย</th><th>เก็บ</th>
+                <th>เราจ่าย</th><th>เก็บ</th>
+                <th>เราจ่าย</th><th>เก็บ</th>
+                <th>เราจ่าย</th><th>เก็บ</th><th>รวม</th>
+              </tr>
+            </thead>
+            <tbody id="whtBody"></tbody>
+            <tfoot id="whtFoot"></tfoot>
+          </table>
+        </div>
+        <button class="add-row-btn" onclick="addNewRow()"><i class="fas fa-plus" style="margin-right:5px;"></i>เพิ่มรายการใหม่</button>
+
+        <div class="status-legend">
+          <span style="font-size:11.5px;color:var(--gray);font-weight:700;margin-right:4px;">สถานะ (คลิก badge เพื่อเปลี่ยน):</span>
+          <span class="sl-item"><span class="sl-dot" style="background:#16A34A;"></span>ยื่นแล้ว</span>
+          <span class="sl-item"><span class="sl-dot" style="background:#F59E0B;"></span>รอยื่น</span>
+          <span class="sl-item"><span class="sl-dot" style="background:#DC2626;"></span>เกินกำหนด</span>
+          <span class="sl-item"><span class="sl-dot" style="background:#4338ca;"></span>รอเอกสาร</span>
+          <span class="sl-item"><span class="sl-dot" style="background:#94a3b8;"></span>ยกเว้น</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Edit Row -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2 class="modal-title" id="editModalTitle">แก้ไขรายการภาษี</h2>
+      <button class="modal-close" onclick="closeModal('editModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editIdx" value="-1">
+      <div class="form-grid">
+        <div class="form-group"><label>ชื่อบริษัท / ลูกค้า *</label><input class="form-control" id="f_company" placeholder="บริษัท ABC จำกัด"></div>
+        <div class="form-group"><label>เลขประจำตัวผู้เสียภาษี</label><input class="form-control" id="f_taxid" placeholder="0000000000000" maxlength="13"></div>
+        <div class="form-group"><label>เดือน</label>
+          <select class="form-control" id="f_month">
+            <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option>
+            <option value="03">มีนาคม</option><option value="04">เมษายน</option>
+            <option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
+            <option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option>
+            <option value="09">กันยายน</option><option value="10">ตุลาคม</option>
+            <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+          </select>
+        </div>
+        <div class="form-group"><label>ปี (พ.ศ.)</label><input class="form-control" id="f_year" type="number" value="2568" min="2560" max="2600"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin:16px 0 0;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div style="background:#dbeafe;padding:10px 14px;border-right:1px solid var(--border);">
+          <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;">ภ.ง.ด.1</div>
+          <div class="form-group" style="margin-bottom:10px;"><label>เราจ่าย (฿)</label><input class="form-control num-input" id="f_pnd1p" type="number" step="0.01" min="0" value="0"></div>
+          <div class="form-group"><label>เก็บ (฿)</label><input class="form-control num-input" id="f_pnd1c" type="number" step="0.01" min="0" value="0"></div>
+        </div>
+        <div style="background:#dcfce7;padding:10px 14px;border-right:1px solid var(--border);">
+          <div style="font-size:11px;font-weight:700;color:#15803d;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;">ภ.ง.ด.3</div>
+          <div class="form-group" style="margin-bottom:10px;"><label>เราจ่าย (฿)</label><input class="form-control num-input" id="f_pnd3p" type="number" step="0.01" min="0" value="0"></div>
+          <div class="form-group"><label>เก็บ (฿)</label><input class="form-control num-input" id="f_pnd3c" type="number" step="0.01" min="0" value="0"></div>
+        </div>
+        <div style="background:#fef3c7;padding:10px 14px;">
+          <div style="font-size:11px;font-weight:700;color:#b45309;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;">ภ.ง.ด.53</div>
+          <div class="form-group" style="margin-bottom:10px;"><label>เราจ่าย (฿)</label><input class="form-control num-input" id="f_pnd53p" type="number" step="0.01" min="0" value="0"></div>
+          <div class="form-group"><label>เก็บ (฿)</label><input class="form-control num-input" id="f_pnd53c" type="number" step="0.01" min="0" value="0"></div>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:14px;">
+        <div class="form-group"><label>สถานะ</label>
+          <select class="form-control" id="f_status">
+            <option value="0">✅ ยื่นแล้ว</option>
+            <option value="1">⏳ รอยื่น</option>
+            <option value="2">🚨 เกินกำหนด</option>
+            <option value="3">📂 รอเอกสาร</option>
+            <option value="4">⚪ ยกเว้น</option>
+          </select>
+        </div>
+        <div class="form-group"><label>ยื่นเพิ่มเติม (฿)</label><input class="form-control" id="f_extra" type="number" min="0" step="0.01" value="0"></div>
+        <div class="form-group full"><label>หมายเหตุ</label><textarea class="form-control" id="f_note" rows="2" placeholder="หมายเหตุเพิ่มเติม..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-gray" onclick="closeModal('editModal')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveRow()"><i class="fas fa-save"></i> บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Delete confirm -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header"><h2 class="modal-title" style="color:#DC2626;"><i class="fas fa-trash" style="margin-right:8px;"></i>ยืนยันการลบ</h2><button class="modal-close" onclick="closeModal('delModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body"><p style="font-size:14px;line-height:1.8;">ต้องการลบรายการ<br><strong id="delName" style="color:#DC2626;"></strong><br>ออกจากระบบหรือไม่?</p></div>
+    <div class="modal-footer"><button class="btn btn-gray" onclick="closeModal('delModal')">ยกเลิก</button><button class="btn btn-danger" onclick="confirmDel()"><i class="fas fa-trash"></i> ลบ</button></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const MN_S = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const MN   = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+const STATUS = [
+  { label:'ยื่นแล้ว',   icon:'fa-check-circle',       cls:'s0' },
+  { label:'รอยื่น',     icon:'fa-clock',               cls:'s1' },
+  { label:'เกินกำหนด', icon:'fa-exclamation-circle',  cls:'s2' },
+  { label:'รอเอกสาร',  icon:'fa-folder-open',         cls:'s3' },
+  { label:'ยกเว้น',    icon:'fa-minus-circle',        cls:'s4' },
+];
+
+let data = JSON.parse(localStorage.getItem('whtData3') || 'null') || [
+  { id:1, company:'บริษัท ไทยเพิ่มศรี จำกัด',      taxid:'0105556123456', month:'01', year:'2568', pnd1p:5947.07, pnd1c:0,    pnd3p:5027.64, pnd3c:0,    pnd53p:2794.23, pnd53c:0,    status:0, extra:0, note:'ยื่นเรียบร้อย ครบทุกแบบ' },
+  { id:2, company:'บริษัท อสสามารถไทย จำกัด',       taxid:'0105557654321', month:'02', year:'2568', pnd1p:8565.77, pnd1c:1200, pnd3p:9804.87, pnd3c:0,    pnd53p:3120.45, pnd53c:0,    status:1, extra:1, note:'เก็บเอกสารเสร็จแล้ว รอนัดส่ง' },
+  { id:3, company:'ห้างหุ้นส่วน มั่นคงการบัญชี',    taxid:'0103558901234', month:'01', year:'2568', pnd1p:3200,    pnd1c:0,    pnd3p:0,       pnd3c:4500, pnd53p:1800,    pnd53c:0,    status:0, extra:0, note:'' },
+  { id:4, company:'บริษัท สยามเทคโนโลยี จำกัด',     taxid:'0105559876543', month:'03', year:'2568', pnd1p:12000,   pnd1c:0,    pnd3p:7500,    pnd3c:0,    pnd53p:0,       pnd53c:3200, status:2, extra:2, note:'ล่าช้า — รอเอกสารแก้ไข' },
+  { id:5, company:'บริษัท นวัตกรรมบัญชีไทย จำกัด', taxid:'0105551122334', month:'02', year:'2568', pnd1p:4300,    pnd1c:0,    pnd3p:2800,    pnd3c:0,    pnd53p:6100,    pnd53c:0,    status:3, extra:0, note:'รอสแกนเอกสาร ภ.ง.ด.53' },
+];
+
+let delIdx = -1;
+let visIdx = [];
+
+function save() { localStorage.setItem('whtData3', JSON.stringify(data)); }
+
+// ============================================================
+// CALC / FORMAT
+// ============================================================
+function totals(r) {
+  const pay = (r.pnd1p||0)+(r.pnd3p||0)+(r.pnd53p||0)+(r.extra||0);
+  const col  = (r.pnd1c||0)+(r.pnd3c||0)+(r.pnd53c||0);
+  return { pay, col, all: pay+col };
+}
+function fmt(n) {
+  if (!n) return '—';
+  return Number(n).toLocaleString('th-TH', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+function fmtKpi(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(2)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toLocaleString('th-TH',{maximumFractionDigits:0});
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function getFiltered() {
+  const yr = document.getElementById('yearFilter').value;
+  const mo = document.getElementById('monthFilter').value;
+  const q  = document.getElementById('searchQ').value.toLowerCase();
+  return data.reduce((a,r,i) => {
+    if (yr && r.year !== yr) return a;
+    if (mo && r.month !== mo) return a;
+    if (q && !r.company.toLowerCase().includes(q) && !(r.taxid||'').includes(q)) return a;
+    a.push(i); return a;
+  }, []);
+}
+
+function render() {
+  visIdx = getFiltered();
+  const tbody = document.getElementById('whtBody');
+  const tfoot = document.getElementById('whtFoot');
+
+  if (!visIdx.length) {
+    tbody.innerHTML = `<tr><td colspan="15" class="table-empty" style="padding:36px;text-align:center;color:var(--gray);"><i class="fas fa-inbox" style="font-size:36px;opacity:.3;display:block;margin-bottom:10px;"></i>ไม่พบรายการ</td></tr>`;
+    tfoot.innerHTML = '';
+    renderKPI();
+    return;
+  }
+
+  let tp1=0,tc1=0,tp3=0,tc3=0,tp53=0,tc53=0;
+  tbody.innerHTML = visIdx.map((di,seq) => {
+    const r = data[di];
+    const t = totals(r);
+    tp1+=r.pnd1p||0; tc1+=r.pnd1c||0;
+    tp3+=r.pnd3p||0; tc3+=r.pnd3c||0;
+    tp53+=r.pnd53p||0; tc53+=r.pnd53c||0;
+    const ec = r.extra||0;
+    const st = STATUS[r.status] || STATUS[1];
+    const statusOptions = STATUS.map((s, idx) => `<option value="${idx}" ${r.status===idx?'selected':''}>${s.label}</option>`).join('');
+    return `<tr data-di="${di}">
+      <td class="ctr" style="color:var(--gray);font-size:11.5px;">${seq+1}</td>
+      <td>
+        <div style="font-weight:700;font-size:13.5px;">${r.company}</div>
+        <div style="font-size:11.5px;color:var(--gray);margin-top:1px;">${MN_S[parseInt(r.month)]} ${r.year}${r.taxid?' · '+r.taxid:''}</div>
+      </td>
+      <td class="num"><input type="number" class="cell-num" value="${r.pnd1p||0}" onchange="cellChange(${di},'pnd1p',this.value)" min="0" step="0.01"></td>
+      <td class="num"><input type="number" class="cell-num" value="${r.pnd1c||0}" onchange="cellChange(${di},'pnd1c',this.value)" min="0" step="0.01"></td>
+      <td class="num"><input type="number" class="cell-num" value="${r.pnd3p||0}" onchange="cellChange(${di},'pnd3p',this.value)" min="0" step="0.01"></td>
+      <td class="num"><input type="number" class="cell-num" value="${r.pnd3c||0}" onchange="cellChange(${di},'pnd3c',this.value)" min="0" step="0.01"></td>
+      <td class="num"><input type="number" class="cell-num" value="${r.pnd53p||0}" onchange="cellChange(${di},'pnd53p',this.value)" min="0" step="0.01"></td>
+      <td class="num"><input type="number" class="cell-num" value="${r.pnd53c||0}" onchange="cellChange(${di},'pnd53c',this.value)" min="0" step="0.01"></td>
+      <td class="num tot" id="tp_${di}">${fmt(t.pay)}</td>
+      <td class="num tot" id="tc_${di}">${fmt(t.col)}</td>
+      <td class="num tot" id="ta_${di}" style="font-size:14px;">${fmt(t.all)}</td>
+      <td class="ctr">
+        <select class="status-select status-badge ${st.cls} tip" onchange="changeStatus(${di}, this.value)">
+          ${statusOptions}
+        </select>
+      </td>
+      <td class="num"><input type="number" class="cell-num" value="${ec}" onchange="cellChange(${di},'extra',this.value)" min="0" step="0.01" style="text-align:right;"></td>
+      <td style="white-space:normal;min-width:160px;">
+        <textarea class="cell-note" rows="1" onchange="cellChange(${di},'note',this.value)" placeholder="หมายเหตุ...">${r.note||''}</textarea>
+      </td>
+      <td class="ctr">
+        <div class="row-acts">
+          <button class="btn-edit-row tip" data-tip="แก้ไข" onclick="openEdit(${di})"><i class="fas fa-edit"></i></button>
+          <button class="btn-del-row tip" data-tip="ลบ" onclick="openDel(${di})"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const ex = visIdx.reduce((sum, di) => sum + (data[di].extra||0), 0);
+  const gp=tp1+tp3+tp53, gc=tc1+tc3+tc53;
+  tfoot.innerHTML = `<tr>
+    <td colspan="2" style="text-align:right;font-size:12px;color:var(--gray);padding-right:12px;">รวม ${visIdx.length} รายการ</td>
+    <td class="num">${fmt(tp1)}</td><td class="num">${fmt(tc1)}</td>
+    <td class="num">${fmt(tp3)}</td><td class="num">${fmt(tc3)}</td>
+    <td class="num">${fmt(tp53)}</td><td class="num">${fmt(tc53)}</td>
+    <td class="num" style="color:#2563EB;">${fmt(gp)}</td>
+    <td class="num" style="color:#2563EB;">${fmt(gc)}</td>
+    <td class="num" style="color:#2563EB;font-size:15px;">${fmt(gp+gc+ex)}</td>
+    <td colspan="4"></td>
+  </tr>`;
+
+  renderKPI();
+}
+
+function renderKPI() {
+  const rows = visIdx.map(i=>data[i]);
+  const sum = k => rows.reduce((a,r)=>a+(r[k]||0),0);
+  const p1=sum('pnd1p')+sum('pnd1c'), p3=sum('pnd3p')+sum('pnd3c'), p53=sum('pnd53p')+sum('pnd53c'), ex=sum('extra');
+  document.getElementById('kpi1').textContent=fmtKpi(p1);
+  document.getElementById('kpi3').textContent=fmtKpi(p3);
+  document.getElementById('kpi53').textContent=fmtKpi(p53);
+  document.getElementById('kpiExtra').textContent=fmtKpi(ex);
+  document.getElementById('kpiTotal').textContent=fmtKpi(p1+p3+p53+ex);
+}
+
+// ============================================================
+// INLINE CELL EDIT (numbers + note)
+// ============================================================
+function cellChange(di, field, val) {
+  const numFields = ['pnd1p','pnd1c','pnd3p','pnd3c','pnd53p','pnd53c','extra'];
+  data[di][field] = numFields.includes(field) ? (parseFloat(val)||0) : val;
+  save();
+  if (numFields.includes(field)) {
+    const t = totals(data[di]);
+    const tp=document.getElementById('tp_'+di);
+    const tc=document.getElementById('tc_'+di);
+    const ta=document.getElementById('ta_'+di);
+    if(tp)tp.textContent=fmt(t.pay);
+    if(tc)tc.textContent=fmt(t.col);
+    if(ta){ta.textContent=fmt(t.all);ta.style.fontSize='14px';}
+    updateFoot();
+    renderKPI();
+  }
+}
+
+function updateFoot() {
+  let tp1=0,tc1=0,tp3=0,tc3=0,tp53=0,tc53=0, tex=0;
+  visIdx.forEach(di=>{ const r=data[di]; tp1+=r.pnd1p||0;tc1+=r.pnd1c||0;tp3+=r.pnd3p||0;tc3+=r.pnd3c||0;tp53+=r.pnd53p||0;tc53+=r.pnd53c||0; tex += r.extra||0; });
+  const gp=tp1+tp3+tp53, gc=tc1+tc3+tc53;
+  const f=document.getElementById('whtFoot');
+  if(!f)return;
+  const cells=f.querySelectorAll('td.num');
+  [fmt(tp1),fmt(tc1),fmt(tp3),fmt(tc3),fmt(tp53),fmt(tc53),fmt(gp),fmt(gc),fmt(gp+gc+tex)].forEach((v,i)=>{ if(cells[i])cells[i].textContent=v; });
+}
+
+// ============================================================
+// STATUS CYCLE (click badge)
+// ============================================================
+function cycleStatus(di) {
+  data[di].status = (data[di].status + 1) % STATUS.length;
+  save();
+  const st = STATUS[data[di].status];
+  const btn = document.getElementById('stbadge_'+di);
+  if(btn){
+    btn.className=`status-badge ${st.cls} tip`;
+    btn.setAttribute('data-tip',st.label+' — คลิกเพื่อเปลี่ยน');
+    btn.innerHTML=`<i class="fas fa-circle" style="font-size:10px;"></i>`;
+  }
+  showToast('สถานะ: '+st.label,'success');
+}
+
+function changeStatus(di, value) {
+  const idx = parseInt(value, 10);
+  if (Number.isNaN(idx) || idx < 0 || idx >= STATUS.length) return;
+  data[di].status = idx;
+  save();
+  render();
+  showToast('สถานะเปลี่ยนเป็น: ' + STATUS[idx].label, 'success');
+}
+
+// ============================================================
+// EXTRA COUNT
+// ============================================================
+function cycleExtra(e, di) {
+  data[di].extra = Math.max(0, (data[di].extra||0) + (e.shiftKey ? -1 : 1));
+  save();
+  const ec=data[di].extra;
+  const ecCls=ec===0?'ec0':ec===1?'ec1':ec===2?'ec2':'ec3p';
+  const btn=document.getElementById('extra_'+di);
+  if(btn){btn.textContent=ec;btn.className=`extra-count ${ecCls} tip`;btn.setAttribute('data-tip','คลิก +1 / Shift+คลิก -1');}
+  renderKPI();
+}
+
+// ============================================================
+// EDIT MODAL
+// ============================================================
+function openEdit(di) {
+  const r = data[di];
+  document.getElementById('editIdx').value = di;
+  document.getElementById('editModalTitle').textContent = 'แก้ไขรายการ — '+r.company;
+  document.getElementById('f_company').value = r.company;
+  document.getElementById('f_taxid').value   = r.taxid||'';
+  document.getElementById('f_month').value   = r.month;
+  document.getElementById('f_year').value    = r.year;
+  document.getElementById('f_pnd1p').value   = r.pnd1p||0;
+  document.getElementById('f_pnd1c').value   = r.pnd1c||0;
+  document.getElementById('f_pnd3p').value   = r.pnd3p||0;
+  document.getElementById('f_pnd3c').value   = r.pnd3c||0;
+  document.getElementById('f_pnd53p').value  = r.pnd53p||0;
+  document.getElementById('f_pnd53c').value  = r.pnd53c||0;
+  document.getElementById('f_status').value  = r.status;
+  document.getElementById('f_extra').value   = r.extra||0;
+  document.getElementById('f_note').value    = r.note||'';
+  openModal('editModal');
+}
+
+function saveRow() {
+  const company = document.getElementById('f_company').value.trim();
+  if(!company){showToast('กรุณากรอกชื่อบริษัท','error');return;}
+  const di = parseInt(document.getElementById('editIdx').value);
+  const isNew = di < 0;
+  const row = {
+    id: isNew ? Date.now() : data[di].id,
+    company,
+    taxid:  document.getElementById('f_taxid').value.trim(),
+    month:  document.getElementById('f_month').value,
+    year:   document.getElementById('f_year').value,
+    pnd1p:  parseFloat(document.getElementById('f_pnd1p').value)||0,
+    pnd1c:  parseFloat(document.getElementById('f_pnd1c').value)||0,
+    pnd3p:  parseFloat(document.getElementById('f_pnd3p').value)||0,
+    pnd3c:  parseFloat(document.getElementById('f_pnd3c').value)||0,
+    pnd53p: parseFloat(document.getElementById('f_pnd53p').value)||0,
+    pnd53c: parseFloat(document.getElementById('f_pnd53c').value)||0,
+    status: parseInt(document.getElementById('f_status').value)||0,
+    extra:  parseFloat(document.getElementById('f_extra').value)||0,
+    note:   document.getElementById('f_note').value.trim(),
+  };
+  if(isNew) data.push(row); else data[di]=row;
+  save(); closeModal('editModal'); render();
+  showToast(isNew?'เพิ่มรายการแล้ว':'บันทึกการแก้ไขแล้ว','success');
+}
+
+// ============================================================
+// ADD NEW
+// ============================================================
+function addNewRow() {
+  document.getElementById('editIdx').value = -1;
+  document.getElementById('editModalTitle').textContent = 'เพิ่มรายการภาษีใหม่';
+  ['f_company','f_taxid','f_note'].forEach(id=>document.getElementById(id).value='');
+  ['f_pnd1p','f_pnd1c','f_pnd3p','f_pnd3c','f_pnd53p','f_pnd53c','f_extra'].forEach(id=>document.getElementById(id).value=0);
+  document.getElementById('f_month').value='01';
+  document.getElementById('f_year').value='2568';
+  document.getElementById('f_status').value='1';
+  openModal('editModal');
+}
+
+// ============================================================
+// DELETE
+// ============================================================
+function openDel(di) {
+  delIdx=di;
+  document.getElementById('delName').textContent=data[di].company;
+  openModal('delModal');
+}
+function confirmDel() {
+  if(delIdx<0)return;
+  data.splice(delIdx,1); save(); delIdx=-1;
+  closeModal('delModal'); render();
+  showToast('ลบรายการแล้ว','success');
+}
+
+// ============================================================
+// EXPORT CSV
+// ============================================================
+function exportCSV() {
+  const rows=visIdx.map(i=>data[i]);
+  if(!rows.length){showToast('ไม่มีข้อมูลให้ส่งออก','error');return;}
+  const H=['#','บริษัท','เลขภาษี','เดือน','ปี','ภ.ง.ด.1 เราจ่าย','ภ.ง.ด.1 เก็บ','ภ.ง.ด.3 เราจ่าย','ภ.ง.ด.3 เก็บ','ภ.ง.ด.53 เราจ่าย','ภ.ง.ด.53 เก็บ','รวมเราจ่าย','รวมเก็บ','รวมทั้งหมด','สถานะ','ยื่นเพิ่มเติม','หมายเหตุ'];
+  const lines=[H.join(','),...rows.map((r,i)=>{
+    const t=totals(r);
+    return [i+1,`"${r.company}"`,r.taxid,MN[parseInt(r.month)],r.year,r.pnd1p,r.pnd1c,r.pnd3p,r.pnd3c,r.pnd53p,r.pnd53c,t.pay,t.col,t.all,(STATUS[r.status]||STATUS[1]).label,r.extra,`"${r.note||''}"`].join(',');
+  })];
+  const blob=new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='wht_export.csv';a.click();
+  showToast('ส่งออก CSV สำเร็จ','success');
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function showToast(msg,type='info'){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  const ic=type==='success'?'check-circle':type==='error'?'exclamation-circle':'info-circle';
+  t.className=`toast ${type}`;
+  t.innerHTML=`<i class="fas fa-${ic}"></i><span>${msg}</span>`;
+  c.appendChild(t);setTimeout(()=>t.remove(),2400);
+}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function toggleDark(){
+  const root=document.documentElement;
+  const next=root.getAttribute('data-theme')==='dark'?'':'dark';
+  root.setAttribute('data-theme',next);document.body.setAttribute('data-theme',next);
+  localStorage.setItem('accCrmTheme',next);
+  document.getElementById('darkIcon').className=next==='dark'?'fas fa-sun':'fas fa-moon';
+  showToast(next==='dark'?'โหมดมืด':'โหมดสว่าง','info');
+}
+function doBackup(){showToast('สำรองข้อมูลเรียบร้อย','success');}
+
+// ============================================================
+// INIT
+// ============================================================
+(function init(){
+  const theme=localStorage.getItem('accCrmTheme')||'';
+  if(theme){document.documentElement.setAttribute('data-theme',theme);document.body.setAttribute('data-theme',theme);}
+  const icon=document.getElementById('darkIcon');
+  if(icon)icon.className=theme==='dark'?'fas fa-sun':'fas fa-moon';
+  document.querySelectorAll('.nav-item[data-page]').forEach(item=>{
+    item.addEventListener('click',()=>{window.location.href=item.getAttribute('data-page')+'.html';});
+  });
+  document.getElementById('mobileMenuBtn').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
+  document.querySelectorAll('.modal-overlay').forEach(m=>{
+    m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);});
+  });
+  render();
+  setTimeout(()=>document.getElementById('loadingOverlay').classList.remove('show'),300);
+})();
+</script>
+<script src="auth.js"></script>
+</body>
+</html>
